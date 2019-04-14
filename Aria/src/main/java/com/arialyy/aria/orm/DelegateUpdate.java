@@ -34,51 +34,7 @@ class DelegateUpdate extends AbsDelegate {
   private DelegateUpdate() {
   }
 
-  ///**
-  // * 添加或更新关联数据
-  // */
-  //void saveRelationData(SQLiteDatabase db, AbsDbWrapper wrapper) {
-  //  Class clazz = wrapper.getClass();
-  //  List<Field> fields = CommonUtil.getAllFields(clazz);
-  //  DbEntity one = null;
-  //  Object many = null;
-  //  try {
-  //    for (Field field : fields) {
-  //      if (SqlUtil.isOne(field)) {
-  //        one = (DbEntity) field.get(wrapper);
-  //      } else if (SqlUtil.isMany(field)) {
-  //        many = field.get(wrapper);
-  //      }
-  //    }
-  //    if (one == null) {
-  //      ALog.w(TAG, "保存关联数据失败，@One注解的字段为null");
-  //      return;
-  //    }
-  //    if (many == null) {
-  //      ALog.w(TAG, "保存关联数据失败，@Many注解的字段为null");
-  //      return;
-  //    }
-  //    List<Field> oneFields = CommonUtil.getAllFields(one.getClass());
-  //    one.save();
-  //    if (many.getClass() == List.class) {
-  //      for (DbEntity sub : (List<DbEntity>) many) {
-  //        sub.getClass().getA
-  //        sub.save();
-  //      }
-  //    } else {
-  //      if (DbEntity.class.isInstance(many)) {
-  //        ((DbEntity) many).save();
-  //      } else {
-  //        ALog.w(TAG, "保存关联数据失败，@Many注解的字段不是DbEntity子类");
-  //        return;
-  //      }
-  //    }
-  //  } catch (IllegalAccessException e) {
-  //    e.printStackTrace();
-  //  }
-  //}
-
-  /**
+    /**
    * 删除某条数据
    */
   synchronized <T extends DbEntity> void delData(SQLiteDatabase db, Class<T> clazz,
@@ -252,9 +208,7 @@ class DelegateUpdate extends AbsDelegate {
 
     if (SqlUtil.isPrimary(field)) {   //忽略自动增长的主键
       Primary p = field.getAnnotation(Primary.class);
-      if (p.autoincrement()) {
-        return true;
-      }
+      return p.autoincrement();
     }
 
     return false;

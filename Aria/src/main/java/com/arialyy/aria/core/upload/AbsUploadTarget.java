@@ -15,14 +15,13 @@
  */
 package com.arialyy.aria.core.upload;
 
-import com.arialyy.aria.core.inf.AbsEntity;
 import com.arialyy.aria.core.inf.AbsTarget;
-import com.arialyy.aria.core.inf.AbsTaskWrapper;
 
 /**
  * Created by AriaL on 2017/6/29.
+ * 普通上传任务接收器
  */
-abstract class AbsUploadTarget<TARGET extends AbsUploadTarget, ENTITY extends AbsEntity, TASK_ENTITY extends AbsTaskWrapper>
-    extends AbsTarget<TARGET, ENTITY, TASK_ENTITY> {
+abstract class AbsUploadTarget<TARGET extends AbsUploadTarget> extends AbsTarget<TARGET> {
+
 
 }

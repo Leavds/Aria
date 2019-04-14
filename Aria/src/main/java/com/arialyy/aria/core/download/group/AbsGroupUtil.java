@@ -16,6 +16,7 @@
 package com.arialyy.aria.core.download.group;
 
 import android.os.Handler;
+import android.os.Looper;
 import com.arialyy.aria.core.common.IUtil;
 import com.arialyy.aria.core.config.Configuration;
 import com.arialyy.aria.core.download.DTaskWrapper;
@@ -61,7 +62,7 @@ public abstract class AbsGroupUtil implements IUtil, Runnable {
     mUpdateInterval = Configuration.getInstance().downloadCfg.getUpdateInterval();
     mState = new GroupRunState(groupWrapper.getKey(), mListener,
         groupWrapper.getSubTaskWrapper().size(), mSubQueue);
-    mScheduler = new Handler(SimpleSchedulers.newInstance(mState));
+    mScheduler = new Handler(Looper.getMainLooper(), SimpleSchedulers.newInstance(mState));
     initState();
   }
 

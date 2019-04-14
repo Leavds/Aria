@@ -7,8 +7,9 @@ Aria项目源于工作中遇到的一个文件下载管理的需求，当时被�
 Aria有以下特点：
  + 简单、方便
    - 可以在Activity、Service、Fragment、Dialog、popupWindow、Notification等组件中使用
-   - 支持HTTP\FTP断点续传、多任务自动调度
-   - 支持HTTP任务组\FTP文件夹，断点续传下载
+   - 支持HTTP\FTP断点续传下载、多任务自动调度
+   - 支持多文件打包下载，多文件共享同一进度（如：视频 + 封面 + 字幕）
+   - 支持下载FTP文件夹
    - 支持HTTP表单上传
    - 支持文件FTP断点续传上传
    - 支持FTPS/SFTP断点续传，[see](https://aria.laoyuyu.me/aria_doc/download/ftps.html)
@@ -23,26 +24,36 @@ Aria有以下特点：
 如果你觉得Aria对你有帮助，您的star和issues将是对我最大支持.`^_^`
 
 ## 示例
+* 多任务下载
+
 ![多任务下载](https://github.com/AriaLyy/DownloadUtil/blob/master/img/download_img.gif)
+
+* 速度限制
+
 ![网速下载限制](https://github.com/AriaLyy/DownloadUtil/blob/master/img/max_speed.gif)
-![下载任务组](https://github.com/AriaLyy/DownloadUtil/blob/master/img/download_group.gif)
+
+* 多文件打包下载
+
+<img src="https://github.com/AriaLyy/DownloadUtil/blob/master/img/group_task.gif" width="360" height="640"/>
 
 
-## 下载
+## 引入库
 [![Core](https://api.bintray.com/packages/arialyy/maven/AriaApi/images/download.svg)](https://bintray.com/arialyy/maven/AriaApi/_latestVersion)
 [![Compiler](https://api.bintray.com/packages/arialyy/maven/AriaCompiler/images/download.svg)](https://bintray.com/arialyy/maven/AriaCompiler/_latestVersion)
 
 ```java
-compile 'com.arialyy.aria:aria-core:3.5.4'
-annotationProcessor 'com.arialyy.aria:aria-compiler:3.5.4'
+compile 'com.arialyy.aria:aria-core:3.6.3'
+annotationProcessor 'com.arialyy.aria:aria-compiler:3.6.3'
 ```
-如果出现android support，请将 `compile 'com.arialyy.aria:aria-core:<last-version>'`替换为
+如果出现android support依赖错误，请将 `compile 'com.arialyy.aria:aria-core:<last-version>'`替换为
 ```
-compile('com.arialyy.aria:aria-core:<last-version>'){
+api('com.arialyy.aria:aria-core:<last-version>'){
    exclude group: 'com.android.support'
 }
 ```
 如果你使用的是kotlin，请使用kotlin官方提供的方法配置apt，[kotlin kapt官方配置传送门](https://www.kotlincn.net/docs/reference/kapt.html)
+
+__注意：3.5.4以下版本升级时，需要更新[配置文件]！！(https://aria.laoyuyu.me/aria_doc/start/config.html)__
 
 ***
 ## 使用
@@ -102,13 +113,12 @@ protected void onCreate(Bundle savedInstanceState) {
 
 
 ### 版本日志
-  + v_3.6(2019/2/27)
-    - 优化数据库写入\修改的速度
-    - 精减任务实体的存储
-    - 增加下载组合任务的配置
-    - useBroadcast\notNetRetry这两个配置，统一在AppConfig中配置
-    - fix bug https://github.com/AriaLyy/Aria/issues/361
-    - fix bug https://github.com/AriaLyy/Aria/issues/365
+* v3.6.3 (2019/4/2)
+  - fix bug https://github.com/AriaLyy/Aria/issues/368
+  - 增加gradle 5.0支持
+  - fix bug https://github.com/AriaLyy/Aria/issues/374
+  - fix bug https://github.com/AriaLyy/Aria/issues/377
+  - 增加分页获取任务列表api, 详情见：https://aria.laoyuyu.me/aria_doc/api/task_list.html#%E4%BB%BB%E5%8A%A1%E5%88%97%E8%A1%A8%E5%88%86%E9%A1%B5%EF%BC%88362%E4%BB%A5%E4%B8%8A%E7%89%88%E6%9C%AC%E6%94%AF%E6%8C%81%EF%BC%89
 
 [更多版本记录](https://github.com/AriaLyy/Aria/blob/master/DEV_LOG.md)
 

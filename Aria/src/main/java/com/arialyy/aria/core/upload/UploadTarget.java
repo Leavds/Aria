@@ -28,22 +28,31 @@ import java.util.Map;
  * Created by lyy on 2017/2/28.
  * http 单文件上传
  */
-public class UploadTarget extends BaseNormalTarget<UploadTarget>
+public class UploadTarget extends AbsUploadTarget<UploadTarget>
     implements IHttpHeaderDelegate<UploadTarget> {
-  private HttpHeaderDelegate<UploadTarget> mDelegate;
+  private HttpHeaderDelegate<UploadTarget> mHeaderDelegate;
+  private UNormalDelegate<UploadTarget> mNormalDelegate;
 
   UploadTarget(String filePath, String targetName) {
-    this.mTargetName = targetName;
-    initTask(filePath);
+    mNormalDelegate = new UNormalDelegate<>(this, filePath, targetName);
+    initTask();
   }
 
-  private void initTask(String filePath) {
-    initTarget(filePath);
-
+  private void initTask() {
     //http暂时不支持断点上传
-    mTaskWrapper.setSupportBP(false);
-    mTaskWrapper.setRequestType(AbsTaskWrapper.U_HTTP);
-    mDelegate = new HttpHeaderDelegate<>(this);
+    getTaskWrapper().setSupportBP(false);
+    getTaskWrapper().setRequestType(AbsTaskWrapper.U_HTTP);
+    mHeaderDelegate = new HttpHeaderDelegate<>(this);
+  }
+
+  /**
+   * 设置上传路径
+   *
+   * @param tempUrl 上传路径
+   */
+  public UploadTarget setUploadUrl(String tempUrl) {
+    mNormalDelegate.setTempUrl(tempUrl);
+    return this;
   }
 
   /**
@@ -58,7 +67,7 @@ public class UploadTarget extends BaseNormalTarget<UploadTarget>
    */
   @CheckResult
   public UploadTarget setUserAngent(@NonNull String userAgent) {
-    mTaskWrapper.asHttp().setUserAgent(userAgent);
+    getTaskWrapper().asHttp().setUserAgent(userAgent);
     return this;
   }
 
@@ -69,7 +78,7 @@ public class UploadTarget extends BaseNormalTarget<UploadTarget>
    */
   @CheckResult
   public UploadTarget setAttachment(@NonNull String attachment) {
-    mTaskWrapper.asHttp().setAttachment(attachment);
+    getTaskWrapper().asHttp().setAttachment(attachment);
     return this;
   }
 
@@ -80,21 +89,37 @@ public class UploadTarget extends BaseNormalTarget<UploadTarget>
    */
   @CheckResult
   public UploadTarget setContentType(String contentType) {
-    mTaskWrapper.asHttp().setContentType(contentType);
+    getTaskWrapper().asHttp().setContentType(contentType);
     return this;
   }
 
   @CheckResult
   @Override public UploadTarget addHeader(@NonNull String key, @NonNull String value) {
-    return mDelegate.addHeader(key, value);
+    return mHeaderDelegate.addHeader(key, value);
   }
 
   @CheckResult
   @Override public UploadTarget addHeaders(Map<String, String> headers) {
-    return mDelegate.addHeaders(headers);
+    return mHeaderDelegate.addHeaders(headers);
   }
 
   @Override public UploadTarget setUrlProxy(Proxy proxy) {
-    return mDelegate.setUrlProxy(proxy);
+    return mHeaderDelegate.setUrlProxy(proxy);
+  }
+
+  @Override protected boolean checkEntity() {
+    return mNormalDelegate.checkEntity();
+  }
+
+  @Override public boolean isRunning() {
+    return mNormalDelegate.isRunning();
+  }
+
+  @Override public boolean taskExists() {
+    return mNormalDelegate.taskExists();
+  }
+
+  @Override public int getTargetType() {
+    return HTTP;
   }
 }

@@ -15,13 +15,16 @@
  */
 package com.arialyy.aria.core.common.ftp;
 
+import android.net.TrafficStats;
 import android.os.Process;
 import android.text.TextUtils;
+
 import aria.apache.commons.net.ftp.FTP;
 import aria.apache.commons.net.ftp.FTPClient;
 import aria.apache.commons.net.ftp.FTPFile;
 import aria.apache.commons.net.ftp.FTPReply;
 import aria.apache.commons.net.ftp.FTPSClient;
+
 import com.arialyy.aria.core.AriaManager;
 import com.arialyy.aria.core.FtpUrlEntity;
 import com.arialyy.aria.core.common.OnFileInfoCallback;
@@ -36,12 +39,15 @@ import com.arialyy.aria.exception.TaskException;
 import com.arialyy.aria.util.ALog;
 import com.arialyy.aria.util.Regular;
 import com.arialyy.aria.util.SSLContextUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.net.ssl.SSLContext;
 
 /**
@@ -79,8 +85,10 @@ public abstract class AbsFtpInfoThread<ENTITY extends AbsEntity, TASK_WRAPPER ex
    */
   protected abstract String setRemotePath();
 
-  @Override public void run() {
+  @Override
+  public void run() {
     Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+    TrafficStats.setThreadStatsTag(UUID.randomUUID().toString().hashCode());
     FTPClient client = null;
     try {
       client = createFtpClient();
@@ -144,6 +152,7 @@ public abstract class AbsFtpInfoThread<ENTITY extends AbsEntity, TASK_WRAPPER ex
         mEntity.setFileSize(mSize);
       }
       onPreComplete(reply);
+      mEntity.update();
     } catch (IOException e) {
       failDownload(new AriaIOException(TAG,
           String.format("FTP错误信息，code：%s，msg：%s", client.getReplyCode(), client.getReplyString()),
@@ -358,7 +367,7 @@ public abstract class AbsFtpInfoThread<ENTITY extends AbsEntity, TASK_WRAPPER ex
    * 处理FTP文件信息
    *
    * @param remotePath ftp服务器文件夹路径
-   * @param ftpFile ftp服务器上对应的文件
+   * @param ftpFile    ftp服务器上对应的文件
    */
   protected void handleFile(String remotePath, FTPFile ftpFile) {
   }
@@ -381,7 +390,8 @@ public abstract class AbsFtpInfoThread<ENTITY extends AbsEntity, TASK_WRAPPER ex
       this.hostName = hostName;
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
       try {
         ips = InetAddress.getAllByName(hostName);
       } catch (UnknownHostException e) {

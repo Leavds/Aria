@@ -16,24 +16,42 @@
 
 package com.arialyy.simple;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatImageView;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
-import butterknife.OnClick;
-import com.arialyy.aria.core.Aria;
+import android.widget.TextView;
+import com.arialyy.frame.permission.OnPermissionCallback;
+import com.arialyy.frame.permission.PermissionManager;
+import com.arialyy.frame.util.show.T;
 import com.arialyy.simple.base.BaseActivity;
+import com.arialyy.simple.base.adapter.AbsHolder;
+import com.arialyy.simple.base.adapter.AbsRVAdapter;
+import com.arialyy.simple.base.adapter.RvItemClickSupport;
 import com.arialyy.simple.databinding.ActivityMainBinding;
-import com.arialyy.simple.download.DownloadActivity;
-import com.arialyy.simple.download.FtpDownloadActivity;
-import com.arialyy.simple.download.group.DownloadGroupActivity;
-import com.arialyy.simple.download.group.FTPDirDownloadActivity;
-import com.arialyy.simple.upload.FtpUploadActivity;
-import com.arialyy.simple.upload.HttpUploadActivity;
+import com.arialyy.simple.core.download.DownloadActivity;
+import com.arialyy.simple.core.download.FtpDownloadActivity;
+import com.arialyy.simple.core.download.group.DownloadGroupActivity;
+import com.arialyy.simple.core.download.group.FTPDirDownloadActivity;
+import com.arialyy.simple.core.upload.FtpUploadActivity;
+import com.arialyy.simple.core.upload.HttpUploadActivity;
+import com.arialyy.simple.modlue.CommonModule;
+import com.arialyy.simple.to.NormalTo;
+import java.util.List;
 
 /**
  * Created by lyy on 2017/3/1.
+ * 首页
  */
 public class MainActivity extends BaseActivity<ActivityMainBinding> {
+  public static final String KEY_MAIN_DATA = "KEY_MAIN_DATA";
 
   @Override protected void init(Bundle savedInstanceState) {
     super.init(savedInstanceState);
@@ -41,38 +59,90 @@ public class MainActivity extends BaseActivity<ActivityMainBinding> {
     mBar.setTitle("Aria  Demo");
     getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 
+    getBinding().list.setLayoutManager(new LinearLayoutManager(this));
+    final List<NormalTo> data = getModule(CommonModule.class).getMainData();
+    getBinding().list.setAdapter(
+        new Adapter(this, data));
+    getBinding().list.addItemDecoration(
+        new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+    RvItemClickSupport.addTo(getBinding().list).setOnItemClickListener(
+        new RvItemClickSupport.OnItemClickListener() {
+          @Override public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+            CommonModule module = getModule(CommonModule.class);
+            switch (position) {
+              case 0:
+                module.startNextActivity(data.get(position), DownloadActivity.class);
+                break;
+              case 1:
+                module.startNextActivity(data.get(position), HttpUploadActivity.class);
+                break;
+              case 2:
+                module.startNextActivity(data.get(position), DownloadGroupActivity.class);
+                break;
+              case 3:
+                module.startNextActivity(data.get(position), FtpDownloadActivity.class);
+                break;
+              case 4:
+                module.startNextActivity(data.get(position), FTPDirDownloadActivity.class);
+                break;
+              case 5:
+                module.startNextActivity(data.get(position), FtpUploadActivity.class);
+                break;
+            }
+          }
+        });
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      boolean hasPermission = PermissionManager.getInstance()
+          .checkPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+      if (!hasPermission) {
+        PermissionManager.getInstance().requestPermission(this, new OnPermissionCallback() {
+          @Override public void onSuccess(String... permissions) {
+          }
+
+          @Override public void onFail(String... permissions) {
+            T.showShort(MainActivity.this, "没有文件读写权限");
+            finish();
+          }
+        }, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+      }
+    }
   }
 
   @Override protected int setLayoutId() {
     return R.layout.activity_main;
   }
 
-  @OnClick({
-      R.id.download, R.id.upload, R.id.download_task_group, R.id.ftp_download,
-      R.id.ftp_dir_download, R.id.ftp_upload, R.id.kotlin_download
-  }) public void funcation(View view) {
-    switch (view.getId()) {
-      case R.id.download:
-        startActivity(new Intent(this, DownloadActivity.class));
-        break;
-      case R.id.upload:
-        startActivity(new Intent(this, HttpUploadActivity.class));
-        break;
-      case R.id.download_task_group:
-        startActivity(new Intent(this, DownloadGroupActivity.class));
-        break;
-      case R.id.ftp_download:
-        startActivity(new Intent(this, FtpDownloadActivity.class));
-        break;
-      case R.id.ftp_dir_download:
-        startActivity(new Intent(this, FTPDirDownloadActivity.class));
-        break;
-      case R.id.ftp_upload:
-        startActivity(new Intent(this, FtpUploadActivity.class));
-        break;
-      case R.id.kotlin_download:
-        //startActivity(new Intent(this, KotlinDownloadActivity.class));
-        break;
+  private static class Adapter extends AbsRVAdapter<NormalTo, Adapter.Holder> {
+
+    Adapter(Context context, List<NormalTo> data) {
+      super(context, data);
+    }
+
+    @Override protected Holder getViewHolder(View convertView, int viewType) {
+      return new Holder(convertView);
+    }
+
+    @Override protected int setLayoutId(int type) {
+      return R.layout.item_main;
+    }
+
+    @Override protected void bindData(Holder holder, int position, NormalTo item) {
+      holder.title.setText(item.title);
+      holder.desc.setText(item.desc);
+      holder.image.setImageResource(item.icon);
+    }
+
+    private static class Holder extends AbsHolder {
+      TextView title, desc;
+      AppCompatImageView image;
+
+      Holder(View itemView) {
+        super(itemView);
+        title = findViewById(R.id.title);
+        desc = findViewById(R.id.desc);
+        image = findViewById(R.id.image);
+      }
     }
   }
 }

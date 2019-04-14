@@ -29,20 +29,20 @@
       </intent-filter>
     </activity>
 
-    <activity android:name=".download.DownloadActivity"/>
-    <activity android:name=".download.SingleTaskActivity"/>
-    <activity android:name=".download.multi_download.MultiTaskActivity"/>
-    <activity android:name=".download.fragment_download.FragmentActivity"/>
-    <activity android:name=".download.multi_download.MultiDownloadActivity"/>
-    <activity android:name=".download.HighestPriorityActivity"/>
-    <activity android:name=".test.TestMutilTaskSysDownload"/>
-    <activity android:name=".download.group.DownloadGroupActivity"/>
-    <activity android:name=".download.FtpDownloadActivity"/>
-    <activity android:name=".download.group.FTPDirDownloadActivity"/>
-    <activity android:name=".upload.HttpUploadActivity"/>
-    <activity android:name=".upload.FtpUploadActivity"/>
+    <activity android:name=".core.download.DownloadActivity"/>
+    <activity android:name=".core.download.SingleTaskActivity"/>
+    <activity android:name=".core.download.multi_download.MultiTaskActivity"/>
+    <activity android:name=".core.download.fragment_download.FragmentActivity"/>
+    <activity android:name=".core.download.multi_download.MultiDownloadActivity"/>
+    <activity android:name=".core.download.HighestPriorityActivity"/>
+    <activity android:name="com.arialyy.simple.core.test.TestMutilTaskSysDownload"/>
+    <activity android:name=".core.download.group.DownloadGroupActivity"/>
+    <activity android:name=".core.download.FtpDownloadActivity"/>
+    <activity android:name=".core.download.group.FTPDirDownloadActivity"/>
+    <activity android:name=".core.upload.HttpUploadActivity"/>
+    <activity android:name=".core.upload.FtpUploadActivity"/>
 
-    <service android:name=".download.service_download.DownloadService"/>
+    <service android:name=".core.download.service_download.DownloadService"/>
   </application>
 
 </manifest>

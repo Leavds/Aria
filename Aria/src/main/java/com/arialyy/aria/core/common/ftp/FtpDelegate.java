@@ -28,12 +28,10 @@ import java.net.Proxy;
  */
 public class FtpDelegate<TARGET extends AbsTarget> implements IFtpTarget<TARGET> {
   private static final String TAG = "FtpDelegate";
-  private FtpUrlEntity mUrlEntity;
   private TARGET mTarget;
 
   public FtpDelegate(TARGET target) {
     mTarget = target;
-    mUrlEntity = target.getTaskWrapper().asFtp().getUrlEntity();
   }
 
   @Override public TARGET charSet(String charSet) {
@@ -56,10 +54,12 @@ public class FtpDelegate<TARGET extends AbsTarget> implements IFtpTarget<TARGET>
       ALog.e(TAG, "密码不能为null");
       return mTarget;
     }
-    mUrlEntity.needLogin = true;
-    mUrlEntity.user = userName;
-    mUrlEntity.password = password;
-    mUrlEntity.account = account;
+    // urlEntity 不能在构造函数中获取，因为ftp上传时url是后于构造函数的
+    FtpUrlEntity urlEntity = mTarget.getTaskWrapper().asFtp().getUrlEntity();
+    urlEntity.needLogin = true;
+    urlEntity.user = userName;
+    urlEntity.password = password;
+    urlEntity.account = account;
     return mTarget;
   }
 

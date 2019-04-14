@@ -16,6 +16,7 @@
 package com.arialyy.aria.core.download;
 
 import android.os.Handler;
+
 import com.arialyy.aria.core.common.BaseListener;
 import com.arialyy.aria.core.inf.IDownloadListener;
 import com.arialyy.aria.core.inf.IEntity;
@@ -33,14 +34,16 @@ public class BaseDListener extends BaseListener<DownloadEntity, DTaskWrapper, Do
     super(task, outHandler);
   }
 
-  @Override public void onPostPre(long fileSize) {
+  @Override
+  public void onPostPre(long fileSize) {
     mEntity.setFileSize(fileSize);
     mEntity.setConvertFileSize(CommonUtil.formatFileSize(fileSize));
     saveData(IEntity.STATE_POST_PRE, -1);
     sendInState2Target(ISchedulers.POST_PRE);
   }
 
-  @Override public void supportBreakpoint(boolean support) {
+  @Override
+  public void supportBreakpoint(boolean support) {
     if (!support) {
       sendInState2Target(ISchedulers.NO_SUPPORT_BREAK_POINT);
     }
@@ -52,9 +55,7 @@ public class BaseDListener extends BaseListener<DownloadEntity, DTaskWrapper, Do
     mEntity.setState(state);
 
     if (state == IEntity.STATE_CANCEL) {
-      if (mEntity instanceof DownloadEntity) {
-        CommonUtil.delTaskRecord(mEntity.getDownloadPath(), 1, mTaskWrapper.isRemoveFile());
-      }
+      CommonUtil.delTaskRecord(mEntity.getDownloadPath(), 1, mTaskWrapper.isRemoveFile());
       return;
     } else if (state == IEntity.STATE_STOP) {
       mEntity.setStopTime(System.currentTimeMillis());
@@ -64,5 +65,6 @@ public class BaseDListener extends BaseListener<DownloadEntity, DTaskWrapper, Do
     if (location > 0) {
       mEntity.setCurrentProgress(location);
     }
+    mEntity.update();
   }
 }

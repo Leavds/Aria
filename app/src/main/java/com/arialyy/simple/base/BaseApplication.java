@@ -19,7 +19,6 @@ package com.arialyy.simple.base;
 import android.app.Application;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.os.Build;
 import android.os.StrictMode;
 import com.arialyy.aria.core.Aria;
 import com.arialyy.frame.core.AbsFrame;
@@ -38,17 +37,13 @@ public class BaseApplication extends Application {
     INSTANCE = this;
     AbsFrame.init(this);
     Aria.init(this);
-    if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+    if (BuildConfig.DEBUG) {
+      StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+          .detectAll()
+          .penaltyLog()
+          .build());
       StrictMode.setThreadPolicy(
           new StrictMode.ThreadPolicy.Builder().detectAll().penaltyLog().build());
-      StrictMode.VmPolicy policy = new StrictMode.VmPolicy.Builder()
-          //.detectLeakedSqlLiteObjects()
-          //.detectLeakedClosableObjects()
-          .detectAll()
-          .penaltyDeath()
-          .penaltyLog()
-          .build();
-      StrictMode.setVmPolicy(policy);
     }
 
     registerReceiver(new ConnectionChangeReceiver(),

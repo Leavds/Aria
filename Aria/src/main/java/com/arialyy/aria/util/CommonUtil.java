@@ -33,6 +33,7 @@ import com.arialyy.aria.core.command.normal.AbsNormalCmd;
 import com.arialyy.aria.core.command.normal.NormalCmdFactory;
 import com.arialyy.aria.core.common.AbsFileer;
 import com.arialyy.aria.core.common.TaskRecord;
+import com.arialyy.aria.core.common.ThreadRecord;
 import com.arialyy.aria.core.download.DownloadEntity;
 import com.arialyy.aria.core.download.DownloadGroupEntity;
 import com.arialyy.aria.core.inf.AbsGroupTaskWrapper;
@@ -78,12 +79,23 @@ public class CommonUtil {
   private static final String TAG = "CommonUtil";
 
   /**
-   * 删除文件
-   * @param path  文件路径
-   * @return  {@code true}删除成功、{@code false}删除失败
+   * 检查分块任务是否存在
+   *
+   * @param filePath 文件保存路径
+   * @return {@code true} 分块文件存在
    */
-  public static boolean deleteFile(String path){
-    if (TextUtils.isEmpty(path)){
+  public static boolean blockTaskExists(String filePath) {
+    return new File(String.format(AbsFileer.SUB_PATH, filePath, 0)).exists();
+  }
+
+  /**
+   * 删除文件
+   *
+   * @param path 文件路径
+   * @return {@code true}删除成功、{@code false}删除失败
+   */
+  public static boolean deleteFile(String path) {
+    if (TextUtils.isEmpty(path)) {
       ALog.e(TAG, "删除文件失败，路径为空");
       return false;
     }
@@ -1132,7 +1144,7 @@ public class CommonUtil {
   }
 
   /**
-   * 更新任务记录
+   * 修改任务路径，修改文件路径和任务记录信息。如果是分块任务，则修改分块文件的路径。
    *
    * @param oldPath 旧的文件路径
    * @param newPath 新的文件路径
@@ -1149,8 +1161,26 @@ public class CommonUtil {
       }
       return;
     }
+    if (!record.isBlock) {
+      File oldFile = new File(oldPath);
+      if (oldFile.exists()) {
+        oldFile.renameTo(new File(newPath));
+      }
+    }
+
     record.filePath = newPath;
     record.update();
+    // 修改线程记录
+    if (record.threadRecords != null && !record.threadRecords.isEmpty()) {
+      for (ThreadRecord tr : record.threadRecords) {
+        tr.key = newPath;
+        File blockFile = new File(String.format(AbsFileer.SUB_PATH, oldPath, tr.threadId));
+        if (blockFile.exists()){
+          blockFile.renameTo(new File(String.format(AbsFileer.SUB_PATH, newPath, tr.threadId)));
+        }
+      }
+      DbEntity.saveAll(record.threadRecords);
+    }
   }
 
   /**

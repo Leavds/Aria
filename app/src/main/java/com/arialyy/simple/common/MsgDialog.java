@@ -17,8 +17,7 @@ package com.arialyy.simple.common;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import butterknife.OnClick;
-import com.arialyy.frame.util.show.T;
+import android.view.View;
 import com.arialyy.simple.R;
 import com.arialyy.simple.base.BaseDialog;
 import com.arialyy.simple.databinding.DialogMsgBinding;
@@ -40,14 +39,14 @@ import com.arialyy.simple.databinding.DialogMsgBinding;
     super.init(savedInstanceState);
     getBinding().setTitle(mTitle);
     getBinding().setMsg(mMsg);
+    getBinding().enter.setOnClickListener(new View.OnClickListener() {
+      @Override public void onClick(View v) {
+        dismiss();
+      }
+    });
   }
 
   @Override protected int setLayoutId() {
     return R.layout.dialog_msg;
-  }
-
-  @OnClick(R.id.enter)
-  public void close(){
-    dismiss();
   }
 }

@@ -21,7 +21,7 @@ import com.arialyy.aria.core.inf.AbsTarget;
 /**
  * get处理委托类
  */
-public class GetDelegate<TARGET extends AbsTarget> extends BaseTarget<TARGET> {
+public class GetDelegate<TARGET extends AbsTarget> extends HttpDelegate<TARGET> {
 
   public GetDelegate(TARGET target) {
     super(target);

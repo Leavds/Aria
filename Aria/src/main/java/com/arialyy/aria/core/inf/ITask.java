@@ -15,8 +15,13 @@
  */
 package com.arialyy.aria.core.inf;
 
+import com.arialyy.aria.core.download.DownloadGroupTask;
+import com.arialyy.aria.core.download.DownloadTask;
+import com.arialyy.aria.core.upload.UploadTask;
+
 /**
  * Created by lyy on 2017/2/13.
+ * 任务接口{@link DownloadTask}、{@link UploadTask}、{@link DownloadGroupTask}
  */
 public interface ITask<TASK_WRAPPER extends AbsTaskWrapper> {
 

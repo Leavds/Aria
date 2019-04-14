@@ -17,7 +17,7 @@
 package com.arialyy.aria.core.common.http;
 
 import com.arialyy.aria.core.common.RequestEnum;
-import com.arialyy.aria.core.inf.ITaskDelegate;
+import com.arialyy.aria.core.inf.ITargetHeadDelegate;
 import java.net.CookieManager;
 import java.net.Proxy;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Http任务设置的信息，如：cookie、请求参数
  */
-public class HttpTaskDelegate implements ITaskDelegate {
+public class HttpTaskDelegate implements ITargetHeadDelegate {
 
   private CookieManager cookieManager;
 

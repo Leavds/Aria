@@ -40,7 +40,7 @@ import javax.lang.model.element.Modifier;
  *
  * <pre>
  *   <code>
- * package com.arialyy.simple.download;
+ * package com.arialyy.simple.core.download;
  *
  * import com.arialyy.aria.core.download.DownloadTask;
  * import com.arialyy.aria.core.scheduler.AbsSchedulerListener;

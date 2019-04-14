@@ -16,130 +16,99 @@
 package com.arialyy.aria.core.download;
 
 import android.support.annotation.CheckResult;
-import android.text.TextUtils;
-import com.arialyy.aria.core.FtpUrlEntity;
-import com.arialyy.aria.core.common.ftp.FTPSConfig;
+import com.arialyy.aria.core.common.ftp.FTPSDelegate;
 import com.arialyy.aria.core.common.ftp.FtpDelegate;
-import com.arialyy.aria.core.inf.AbsTaskWrapper;
 import com.arialyy.aria.core.inf.IFtpTarget;
 import com.arialyy.aria.core.manager.TaskWrapperManager;
-import com.arialyy.aria.util.ALog;
 import java.net.Proxy;
 
 /**
  * Created by Aria.Lao on 2017/7/26.
  * ftp文件夹下载
  */
-public class FtpDirDownloadTarget extends BaseGroupTarget<FtpDirDownloadTarget>
+public class FtpDirDownloadTarget extends AbsDGTarget<FtpDirDownloadTarget>
     implements IFtpTarget<FtpDirDownloadTarget> {
-  private FtpDelegate<FtpDirDownloadTarget> mDelegate;
+  private FtpDelegate<FtpDirDownloadTarget> mFtpDelegate;
+  private FtpDirDelegate mDirDelegate;
 
   FtpDirDownloadTarget(String url, String targetName) {
-    mTargetName = targetName;
+    setTargetName(targetName);
     init(url);
   }
 
   private void init(String key) {
-    mGroupHash = key;
-    mTaskWrapper = TaskWrapperManager.getInstance().getFtpTaskWrapper(DGTaskWrapper.class, key);
-    mTaskWrapper.setRequestType(AbsTaskWrapper.D_FTP_DIR);
-    mEntity = mTaskWrapper.getEntity();
-    if (mEntity != null) {
-      mDirPathTemp = mEntity.getDirPath();
-    }
-    mDelegate = new FtpDelegate<>(this);
+    mDirDelegate = new FtpDirDelegate(this,
+        TaskWrapperManager.getInstance().getFtpTaskWrapper(DGTaskWrapper.class, key));
+    mFtpDelegate = new FtpDelegate<>(this);
   }
 
-  @Override protected int getTargetType() {
+  @Override public int getTargetType() {
     return GROUP_FTP_DIR;
   }
 
   @Override protected boolean checkEntity() {
-    boolean b = getTargetType() == GROUP_FTP_DIR && checkDirPath() && checkUrl();
-    if (b) {
-      mEntity.save();
-      if (mTaskWrapper.getSubTaskWrapper() != null) {
-        //初始化子项的登录信息
-        FtpUrlEntity tUrlEntity = mTaskWrapper.asFtp().getUrlEntity();
-        for (DTaskWrapper wrapper : mTaskWrapper.getSubTaskWrapper()) {
-          FtpUrlEntity urlEntity = wrapper.asFtp().getUrlEntity();
-          urlEntity.needLogin = tUrlEntity.needLogin;
-          urlEntity.account = tUrlEntity.account;
-          urlEntity.user = tUrlEntity.user;
-          urlEntity.password = tUrlEntity.password;
-          // 处理ftps详细
-          if (tUrlEntity.isFtps) {
-            urlEntity.isFtps = true;
-            urlEntity.protocol = tUrlEntity.protocol;
-            urlEntity.storePath = tUrlEntity.storePath;
-            urlEntity.storePass = tUrlEntity.storePass;
-            urlEntity.keyAlias = tUrlEntity.keyAlias;
-          }
-        }
-      }
-    }
-    if (mTaskWrapper.asFtp().getUrlEntity().isFtps) {
-      if (TextUtils.isEmpty(mTaskWrapper.asFtp().getUrlEntity().storePath)) {
-        ALog.e(TAG, "证书路径为空");
-        return false;
-      }
-      if (TextUtils.isEmpty(mTaskWrapper.asFtp().getUrlEntity().keyAlias)) {
-        ALog.e(TAG, "证书别名为空");
-        return false;
-      }
-    }
-    return b;
+    return mDirDelegate.checkEntity();
+  }
+
+  @Override public boolean isRunning() {
+    return mDirDelegate.isRunning();
+  }
+
+  @Override public boolean taskExists() {
+    return mDirDelegate.taskExists();
   }
 
   /**
-   * 检查普通任务的下载地址
+   * 设置任务组的文件夹路径，在Aria中，任务组的所有子任务都会下载到以任务组组名的文件夹中。
+   * 如：groupDirPath = "/mnt/sdcard/download/group_test"
+   * <pre>
+   *   {@code
+   *      + mnt
+   *        + sdcard
+   *          + download
+   *            + group_test
+   *              - task1.apk
+   *              - task2.apk
+   *              - task3.apk
+   *              ....
    *
-   * @return {@code true}地址合法
+   *   }
+   * </pre>
+   *
+   * @param dirPath 任务组保存文件夹路径
    */
-  private boolean checkUrl() {
-    final String url = mGroupHash;
-    if (TextUtils.isEmpty(url)) {
-      ALog.e(TAG, "下载失败，url为null");
-      return false;
-    } else if (!url.startsWith("ftp")) {
-      ALog.e(TAG, "下载失败，url【" + url + "】错误");
-      return false;
-    }
-    int index = url.indexOf("://");
-    if (index == -1) {
-      ALog.e(TAG, "下载失败，url【" + url + "】不合法");
-      return false;
-    }
-    return true;
+  @CheckResult
+  public FtpDirDownloadTarget setDirPath(String dirPath) {
+    return mDirDelegate.setDirPath(dirPath);
   }
 
   /**
    * 是否是FTPS协议
-   * 如果是FTPS协议，需要使用{@link FTPSConfig#setStorePath(String)} 、{@link FTPSConfig#setAlias(String)}
+   * 如果是FTPS协议，需要使用{@link FTPSDelegate#setStorePath(String)} 、{@link FTPSDelegate#setAlias(String)}
    * 设置证书信息
    */
   @CheckResult
-  public FTPSConfig<FtpDirDownloadTarget> asFtps() {
-    mTaskWrapper.asFtp().getUrlEntity().isFtps = true;
-    return new FTPSConfig<>(this);
+  public FTPSDelegate<FtpDirDownloadTarget> asFtps() {
+    getTaskWrapper().asFtp().getUrlEntity().isFtps = true;
+    return new FTPSDelegate<>(this);
   }
 
   @CheckResult
   @Override public FtpDirDownloadTarget charSet(String charSet) {
-    return mDelegate.charSet(charSet);
+    return mFtpDelegate.charSet(charSet);
   }
 
   @CheckResult
   @Override public FtpDirDownloadTarget login(String userName, String password) {
-    return mDelegate.login(userName, password);
+    return mFtpDelegate.login(userName, password);
   }
 
   @CheckResult
   @Override public FtpDirDownloadTarget login(String userName, String password, String account) {
-    return mDelegate.login(userName, password, account);
+    return mFtpDelegate.login(userName, password, account);
   }
 
   @Override public FtpDirDownloadTarget setProxy(Proxy proxy) {
-    return mDelegate.setProxy(proxy);
+    return mFtpDelegate.setProxy(proxy);
   }
 }

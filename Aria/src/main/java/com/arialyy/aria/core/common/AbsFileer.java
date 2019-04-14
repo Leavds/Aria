@@ -470,7 +470,7 @@ public abstract class AbsFileer<ENTITY extends AbsNormalEntity, TASK_WRAPPER ext
           continue;
         }
         if (record != null) {
-          Long temp = Long.parseLong(String.valueOf(record));
+          long temp = Long.parseLong(String.valueOf(record));
           tRecord.startLocation = temp > 0 ? temp : 0;
         } else {
           tRecord.startLocation = 0;

@@ -16,6 +16,7 @@
 package com.arialyy.aria.core.download;
 
 import android.os.Handler;
+
 import com.arialyy.aria.core.common.BaseListener;
 import com.arialyy.aria.core.download.group.IDownloadGroupListener;
 import com.arialyy.aria.core.inf.GroupSendParams;
@@ -41,41 +42,49 @@ class DownloadGroupListener
     mSeedEntity.groupTask = task;
   }
 
-  @Override public void onSubPre(DownloadEntity subEntity) {
+  @Override
+  public void onSubPre(DownloadEntity subEntity) {
     sendInState2Target(ISchedulers.SUB_PRE, subEntity);
   }
 
-  @Override public void supportBreakpoint(boolean support, DownloadEntity subEntity) {
+  @Override
+  public void supportBreakpoint(boolean support, DownloadEntity subEntity) {
 
   }
 
-  @Override public void onSubStart(DownloadEntity subEntity) {
+  @Override
+  public void onSubStart(DownloadEntity subEntity) {
     sendInState2Target(ISchedulers.SUB_START, subEntity);
   }
 
-  @Override public void onSubStop(DownloadEntity subEntity) {
+  @Override
+  public void onSubStop(DownloadEntity subEntity) {
     saveCurrentLocation();
     sendInState2Target(ISchedulers.SUB_STOP, subEntity);
   }
 
-  @Override public void onSubComplete(DownloadEntity subEntity) {
+  @Override
+  public void onSubComplete(DownloadEntity subEntity) {
     saveCurrentLocation();
     sendInState2Target(ISchedulers.SUB_COMPLETE, subEntity);
   }
 
-  @Override public void onSubFail(DownloadEntity subEntity, BaseException e) {
+  @Override
+  public void onSubFail(DownloadEntity subEntity, BaseException e) {
     saveCurrentLocation();
     sendInState2Target(ISchedulers.SUB_FAIL, subEntity);
     e.printStackTrace();
     ErrorHelp.saveError(e.getTag(), "", ALog.getExceptionString(e));
   }
 
-  @Override public void onSubCancel(DownloadEntity subEntity) {
+  @Override
+  public void onSubCancel(DownloadEntity subEntity) {
     saveCurrentLocation();
     sendInState2Target(ISchedulers.SUB_CANCEL, subEntity);
   }
 
-  @Override public void onSubRunning(DownloadEntity subEntity) {
+  @Override
+  public void onSubRunning(DownloadEntity subEntity) {
     sendInState2Target(ISchedulers.SUB_RUNNING, subEntity);
   }
 
@@ -107,24 +116,25 @@ class DownloadGroupListener
     mEntity.update();
   }
 
-  @Override public void onPostPre(long fileSize) {
+  @Override
+  public void onPostPre(long fileSize) {
     mEntity.setFileSize(fileSize);
     mEntity.setConvertFileSize(CommonUtil.formatFileSize(fileSize));
     saveData(IEntity.STATE_POST_PRE, -1);
     sendInState2Target(ISchedulers.POST_PRE);
   }
 
-  @Override public void supportBreakpoint(boolean support) {
+  @Override
+  public void supportBreakpoint(boolean support) {
 
   }
 
-  @Override protected void saveData(int state, long location) {
+  @Override
+  protected void saveData(int state, long location) {
     mTaskWrapper.setState(state);
     mEntity.setState(state);
     if (state == IEntity.STATE_CANCEL) {
-      if (mEntity instanceof DownloadGroupEntity) {
-        CommonUtil.delGroupTaskRecord(mTaskWrapper.isRemoveFile(), mEntity);
-      }
+      CommonUtil.delGroupTaskRecord(mTaskWrapper.isRemoveFile(), mEntity);
       return;
     } else if (state == IEntity.STATE_STOP) {
       mEntity.setStopTime(System.currentTimeMillis());
@@ -134,5 +144,6 @@ class DownloadGroupListener
     if (location > 0) {
       mEntity.setCurrentProgress(location);
     }
+    mEntity.update();
   }
 }

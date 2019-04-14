@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion '26.0.2'
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
 
   defaultConfig {
-    minSdkVersion 9
-    targetSdkVersion 23
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
     versionCode 329
     versionName "3.2.9"
   }
@@ -22,11 +22,11 @@ android {
 }
 
 dependencies {
-  compile fileTree(include: ['*.jar'], dir: 'libs')
-  testCompile 'junit:junit:4.12'
-  compile 'com.android.support:appcompat-v7:23.1.1'
-  compile project(':AriaAnnotations')
-  compile 'com.arialyy.aria:aria-ftp-plug:1.0.4'  // 打包时用这个
+  implementation fileTree(include: ['*.jar'], dir: 'libs')
+  testImplementation 'junit:junit:4.12'
+  implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+  api project(':AriaAnnotations')
+  api 'com.arialyy.aria:aria-ftp-plug:1.0.4'  // 打包时用这个
 
 //    compile project(':AriaFtpPlug')
 }

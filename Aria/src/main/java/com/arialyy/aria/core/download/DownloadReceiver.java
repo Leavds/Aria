@@ -48,7 +48,9 @@ public class DownloadReceiver extends AbsReceiver {
    * 设置最大下载速度，单位：kb
    *
    * @param maxSpeed 为0表示不限速
+   * @deprecated {@code Aria.get(Context).getDownloadConfig().setMaxSpeed(int)}
    */
+  @Deprecated
   public DownloadReceiver setMaxSpeed(int maxSpeed) {
     AriaManager.getInstance(AriaManager.APP).getDownloadConfig().setMaxSpeed(maxSpeed);
     return this;
@@ -61,6 +63,7 @@ public class DownloadReceiver extends AbsReceiver {
    */
   @CheckResult
   public DownloadTarget load(DownloadEntity entity) {
+    CheckUtil.checkUrlInvalidThrow(entity.getUrl());
     return new DownloadTarget(entity, targetName);
   }
 
@@ -71,6 +74,7 @@ public class DownloadReceiver extends AbsReceiver {
    */
   @CheckResult
   public DownloadTarget load(@NonNull String url) {
+    CheckUtil.checkUrlInvalidThrow(url);
     return new DownloadTarget(url, targetName);
   }
 
@@ -102,6 +106,7 @@ public class DownloadReceiver extends AbsReceiver {
    */
   @CheckResult
   public FtpDownloadTarget loadFtp(DownloadEntity entity) {
+    CheckUtil.checkUrlInvalidThrow(entity.getUrl());
     return new FtpDownloadTarget(entity, targetName);
   }
 
@@ -110,6 +115,7 @@ public class DownloadReceiver extends AbsReceiver {
    */
   @CheckResult
   public FtpDownloadTarget loadFtp(@NonNull String url) {
+    CheckUtil.checkUrlInvalidThrow(url);
     return new FtpDownloadTarget(url, targetName);
   }
 
@@ -123,6 +129,7 @@ public class DownloadReceiver extends AbsReceiver {
   @Deprecated
   @CheckResult
   public DownloadGroupTarget load(DownloadGroupEntity groupEntity) {
+    CheckUtil.checkDownloadUrls(groupEntity.getUrls());
     return loadGroup(groupEntity);
   }
 
@@ -134,6 +141,7 @@ public class DownloadReceiver extends AbsReceiver {
    */
   @CheckResult
   public DownloadGroupTarget loadGroup(DownloadGroupEntity groupEntity) {
+    CheckUtil.checkDownloadUrls(groupEntity.getUrls());
     return new DownloadGroupTarget(groupEntity, targetName);
   }
 
@@ -145,7 +153,7 @@ public class DownloadReceiver extends AbsReceiver {
     CheckUtil.checkUrlInvalidThrow(dirUrl);
     return new FtpDirDownloadTarget(dirUrl, targetName);
   }
-
+  
   /**
    * 将当前类注册到Aria
    */
@@ -287,7 +295,7 @@ public class DownloadReceiver extends AbsReceiver {
    * @return {@code true}存在，{@code false} 不存在
    */
   public boolean taskExists(String downloadUrl) {
-    return DbEntity.checkDataExist(DTaskWrapper.class, "url=?", downloadUrl);
+    return DbEntity.checkDataExist(DownloadEntity.class, "url=?", downloadUrl);
   }
 
   /**
@@ -305,19 +313,47 @@ public class DownloadReceiver extends AbsReceiver {
 
   /**
    * 获取所有普通下载任务
-   * 获取未完成的普通任务列表{@link #getAllNotCompletTask()}
+   * 获取未完成的普通任务列表{@link #getAllNotCompleteTask()}
    * 获取已经完成的普通任务列表{@link #getAllCompleteTask()}
    */
   public List<DownloadEntity> getTaskList() {
-    return DownloadEntity.findDatas(DownloadEntity.class, "isGroupChild=? and downloadPath!=''",
+    return DbEntity.findDatas(DownloadEntity.class, "isGroupChild=? and downloadPath!=''",
         "false");
+  }
+
+  /**
+   * 分页获取所有普通下载任务
+   * 获取未完成的普通任务列表{@link #getAllNotCompleteTask()}
+   * 获取已经完成的普通任务列表{@link #getAllCompleteTask()}
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果页数大于总页数，返回null
+   */
+  public List<DownloadEntity> getTaskList(int page, int num) {
+    CheckUtil.checkPageParams(page, num);
+    return DbEntity.findDatas(DownloadEntity.class, page, num,
+        "isGroupChild=? and downloadPath!=''", "false");
   }
 
   /**
    * 获取所有未完成的普通下载任务
    */
-  public List<DownloadEntity> getAllNotCompletTask() {
-    return DownloadEntity.findDatas(DownloadEntity.class,
+  public List<DownloadEntity> getAllNotCompleteTask() {
+    return DbEntity.findDatas(DownloadEntity.class,
+        "isGroupChild=? and downloadPath!='' and isComplete=?", "false", "false");
+  }
+
+  /**
+   * 分页获取所有未完成的普通下载任务
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果页数大于总页数，返回null
+   */
+  public List<DownloadEntity> getAllNotCompleteTask(int page, int num) {
+    CheckUtil.checkPageParams(page, num);
+    return DbEntity.findDatas(DownloadEntity.class, page, num,
         "isGroupChild=? and downloadPath!='' and isComplete=?", "false", "false");
   }
 
@@ -325,7 +361,20 @@ public class DownloadReceiver extends AbsReceiver {
    * 获取所有已经完成的普通任务
    */
   public List<DownloadEntity> getAllCompleteTask() {
-    return DownloadEntity.findDatas(DownloadEntity.class,
+    return DbEntity.findDatas(DownloadEntity.class,
+        "isGroupChild=? and downloadPath!='' and isComplete=?", "false", "true");
+  }
+
+  /**
+   * 分页获取所有已经完成的普通任务
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果页数大于总页数，返回null
+   */
+  public List<DownloadEntity> getAllCompleteTask(int page, int num) {
+    CheckUtil.checkPageParams(page, num);
+    return DbEntity.findDatas(DownloadEntity.class,
         "isGroupChild=? and downloadPath!='' and isComplete=?", "false", "true");
   }
 
@@ -336,6 +385,25 @@ public class DownloadReceiver extends AbsReceiver {
    */
   public List<DownloadGroupEntity> getGroupTaskList() {
     List<DGEntityWrapper> wrappers = DbEntity.findRelationData(DGEntityWrapper.class);
+    if (wrappers == null || wrappers.isEmpty()) {
+      return null;
+    }
+    List<DownloadGroupEntity> entities = new ArrayList<>();
+    for (DGEntityWrapper wrapper : wrappers) {
+      entities.add(wrapper.groupEntity);
+    }
+    return entities;
+  }
+
+  /**
+   * 分页获取祝贺任务列表
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果没有任务组列表，则返回null
+   */
+  public List<DownloadGroupEntity> getGroupTaskList(int page, int num) {
+    List<DGEntityWrapper> wrappers = DbEntity.findRelationData(DGEntityWrapper.class, page, num);
     if (wrappers == null || wrappers.isEmpty()) {
       return null;
     }

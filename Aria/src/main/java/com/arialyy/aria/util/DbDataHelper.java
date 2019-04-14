@@ -48,7 +48,7 @@ public class DbDataHelper {
   /**
    * 获取组合任务实体 如果数据库不存在该实体，则新创建一个新的任务组实体
    *
-   * @param groupHash 组合任务名称
+   * @param groupHash 组合任务Hash
    * @param urls 子任务url列表
    */
   public static DownloadGroupEntity getHttpDGEntity(String groupHash, List<String> urls) {

@@ -87,7 +87,8 @@ class StartCmd<T extends AbsTaskWrapper> extends AbsNormalCmd<T> {
       }
     } else {
       //任务没执行并且执行队列中没有该任务，才认为任务没有运行中
-      if (!task.isRunning() && !mQueue.taskIsRunning(task.getKey())) {
+      if (!task.isRunning() && !mQueue.taskIsRunning(task.getKey()) && !mQueue.taskExists(
+          task.getKey())) {
         resumeTask();
       } else {
         ALog.w(TAG, String.format("任务【%s】已经在运行", task.getTaskName()));

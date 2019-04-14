@@ -133,6 +133,9 @@ public class DownloadEntity extends AbsNormalEntity implements Parcelable {
         + ", groupHash='"
         + groupHash
         + '\''
+        + ", fileName='"
+        + getFileName()
+        + '\''
         + ", md5Code='"
         + md5Code
         + '\''

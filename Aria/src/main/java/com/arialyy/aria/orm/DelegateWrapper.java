@@ -65,6 +65,17 @@ public class DelegateWrapper {
   }
 
   /**
+   * 查询关联表数据
+   *
+   * @param expression 查询条件
+   */
+  <T extends AbsDbWrapper> List<T> findRelationData(Class<T> clazz, int page, int num,
+      String... expression) {
+    return mDManager.getDelegate(DelegateFind.class)
+        .findRelationData(mDb, clazz, page, num, expression);
+  }
+
+  /**
    * 检查某个字段的值是否存在
    *
    * @param expression 字段和值"url=xxx"
@@ -125,10 +136,26 @@ public class DelegateWrapper {
   }
 
   /**
+   * 获取分页数据
+   */
+  <T extends DbEntity> List<T> findData(Class<T> clazz, int page, int num, String... expression) {
+    return mDManager.getDelegate(DelegateFind.class).findData(mDb, clazz, page, num, expression);
+  }
+
+  /**
    * 模糊查寻数据
    */
   <T extends DbEntity> List<T> findDataByFuzzy(Class<T> clazz, String conditions) {
     return mDManager.getDelegate(DelegateFind.class).findDataByFuzzy(mDb, clazz, conditions);
+  }
+
+  /**
+   * 模糊查寻数据
+   */
+  <T extends DbEntity> List<T> findDataByFuzzy(Class<T> clazz, int page, int num,
+      String conditions) {
+    return mDManager.getDelegate(DelegateFind.class)
+        .findDataByFuzzy(mDb, clazz, page, num, conditions);
   }
 
   /**

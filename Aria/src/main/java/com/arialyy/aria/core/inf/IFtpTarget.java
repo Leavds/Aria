@@ -21,7 +21,7 @@ import java.net.Proxy;
 /**
  * Created by laoyuyu on 2018/3/9.
  */
-public interface IFtpTarget<TARGET extends ITarget> {
+public interface IFtpTarget<TARGET extends ITargetHandler> {
   /**
    * 设置字符编码
    */

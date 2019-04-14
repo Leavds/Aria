@@ -71,7 +71,14 @@ class DelegateCommon extends AbsDelegate {
     return tableExists(db, CommonUtil.getClassName(clazz));
   }
 
-  private boolean tableExists(SQLiteDatabase db, String tableName) {
+
+  /**
+   * 查找表是否存在
+   *
+   * @param tableName 表名
+   * @return true，该数据库实体对应的表存在；false，不存在
+   */
+  boolean tableExists(SQLiteDatabase db, String tableName) {
     db = checkDb(db);
     Cursor cursor = null;
     try {
@@ -104,8 +111,8 @@ class DelegateCommon extends AbsDelegate {
   boolean checkDataExist(SQLiteDatabase db, Class clazz, String... expression) {
     db = checkDb(db);
     CheckUtil.checkSqlExpression(expression);
-    String sql =
-        "SELECT rowid, * FROM " + CommonUtil.getClassName(clazz) + " WHERE " + expression[0] + " ";
+    String sql = String.format("SELECT rowid, * FROM %s WHERE %s ", CommonUtil.getClassName(clazz),
+        expression[0]);
     sql = sql.replace("?", "%s");
     Object[] params = new String[expression.length - 1];
     for (int i = 0, len = params.length; i < len; i++) {

@@ -33,7 +33,6 @@ abstract class AbsDelegate {
   static final int INSERT_DATA = 2;
   static final int MODIFY_DATA = 3;
   static final int FIND_DATA = 4;
-  static final int FIND_ALL_DATA = 5;
   static final int DEL_DATA = 6;
   static final int ROW_ID = 7;
   static final int RELATION = 8;
@@ -65,10 +64,7 @@ abstract class AbsDelegate {
         str = "修改数据 >>>> ";
         break;
       case FIND_DATA:
-        str = "查询一行数据 >>>> ";
-        break;
-      case FIND_ALL_DATA:
-        str = "遍历整个数据库 >>>> ";
+        str = "查询数据 >>>> ";
         break;
       case ROW_ID:
         str = "查询RowId >>> ";

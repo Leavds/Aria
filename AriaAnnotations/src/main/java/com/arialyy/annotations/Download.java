@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
 
 /**
  * Created by lyy on 2017/6/6.
- * Aria下载事件被注解的方法中，参数仅能有一个，参数类型为{@link com.arialyy.aria.core.download.DownloadTask}
+ * Aria下载事件被注解的方法中，参数仅能有一个，参数类型为 com.arialyy.aria.core.download.DownloadTask
  * <pre>
  *   <code>
  *      {@literal @}Download.onPre
@@ -37,77 +37,77 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) public @interface Download {
 
   /**
-   * {@code @Download.onPre}注解，下载队列已经满了，继续创建新任务，将会回调该方法
+   * "@Download.onPre"注解，下载队列已经满了，继续创建新任务，将会回调该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onWait{
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onPre}注解，在预处理完成时，Aria会调用该方法
+   * "@Download.onPre"注解，在预处理完成时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onPre {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskPre}注解，在任务预处理完成时，Aria会调用该方法
+   * "@Download.onTaskPre"注解，在任务预处理完成时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskPre {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskResume}注解，在任务恢复下载时，Aria会调用该方法
+   * "@Download.onTaskResume"注解，在任务恢复下载时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskResume {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskStart}注解，在任务开始下载时，Aria会调用该方法
+   * "@Download.onTaskStart"注解，在任务开始下载时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskStart {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskStop}注解，在任务停止时，Aria会调用该方法
+   * "@Download.onTaskStop"注解，在任务停止时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskStop {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskCancel}l注解，在任务取消时，Aria会调用该方法
+   * "@Download.onTaskCancel}l注解，在任务取消时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskCancel {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskFail)注解，在任务预失败时，Aria会调用该方法
+   * "@Download.onTaskFail)注解，在任务预失败时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskFail {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskComplete}注解，在任务完成时，Aria会调用该方法
+   * "@Download.onTaskComplete"注解，在任务完成时，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskComplete {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onTaskRunning}注解，在任务正在下载，Aria会调用该方法
+   * "@Download.onTaskRunning"注解，在任务正在下载，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD) @interface onTaskRunning {
     String[] value() default { AriaConstance.NO_URL };
   }
 
   /**
-   * {@code @Download.onNoSupportBreakPoint}注解，如果该任务不支持断点，Aria会调用该方法
+   * "@Download.onNoSupportBreakPoint"注解，如果该任务不支持断点，Aria会调用该方法
    */
   @Retention(RetentionPolicy.CLASS) @Target(ElementType.METHOD)
   @interface onNoSupportBreakPoint {

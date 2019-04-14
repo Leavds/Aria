@@ -22,6 +22,7 @@ import com.arialyy.aria.core.download.DownloadEntity;
 import com.arialyy.aria.core.inf.AbsTaskWrapper;
 import com.arialyy.aria.core.upload.UTaskWrapper;
 import com.arialyy.aria.core.upload.UploadEntity;
+import com.arialyy.aria.exception.ParamException;
 import java.io.File;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -35,10 +36,34 @@ public class CheckUtil {
   private static final String TAG = "CheckUtil";
 
   /**
+   * 检查ftp上传路径，如果ftp上传路径为空，抛出空指针异常
+   * 如果ftp上传路径不是以"ftp"或"sftp"，抛出参数异常
+   *
+   * @param ftpUrl ftp上传路径
+   */
+  public static void checkFtpUploadUrl(String ftpUrl) {
+    if (TextUtils.isEmpty(ftpUrl)) {
+      throw new ParamException("ftp上传路径为空");
+    } else if (!ftpUrl.startsWith("ftp") || !ftpUrl.startsWith("sftp")) {
+      throw new ParamException("ftp上传路径无效");
+    }
+  }
+
+  /**
    * 判空
    */
   public static void checkNull(Object obj) {
     if (obj == null) throw new IllegalArgumentException("不能传入空对象");
+  }
+
+  /**
+   * 检查分页数据，需要查询的页数，从1开始，如果page小于1 或 num 小于1，则抛出{@link NullPointerException}
+   *
+   * @param page 从1 开始
+   * @param num 每页数量
+   */
+  public static void checkPageParams(int page, int num) {
+    if (page < 1 || num < 1) throw new NullPointerException("page和num不能小于1");
   }
 
   /**

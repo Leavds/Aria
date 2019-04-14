@@ -30,21 +30,37 @@ public abstract class DbEntity {
 
   }
 
-  ///**
-  // * 保存关联数据
-  // */
-  //public static void saveRelationData(AbsDbWrapper wrapper) {
-  //  DelegateWrapper.getInstance().saveRelationData(wrapper);
-  //}
-
   /**
    * 查询关联数据
+   * <code>
+   * DbEntity.findRelationData(DGEntityWrapper.class, "downloadUrl=?", downloadUrl);
+   * </code>
    *
    * @param expression 查询条件
    */
   public static <T extends AbsDbWrapper> List<T> findRelationData(Class<T> clazz,
       String... expression) {
     return DelegateWrapper.getInstance().findRelationData(clazz, expression);
+  }
+
+  /**
+   * 分页查询关联数据
+   *
+   * <code>
+   * DbEntity.findRelationData(DGEntityWrapper.class, 0, 10, "downloadUrl=?", downloadUrl);
+   * </code>
+   *
+   * @param expression 查询条件
+   * @param page 需要查询的页数，从1开始，如果page小于1 或 num 小于1，返回null
+   * @param num 每页返回的数量
+   * @return 没有数据返回null，如果页数大于总页数，返回null
+   */
+  public static <T extends AbsDbWrapper> List<T> findRelationData(Class<T> clazz, int page, int num,
+      String... expression) {
+    if (page < 1 || num < 1) {
+      return null;
+    }
+    return DelegateWrapper.getInstance().findRelationData(clazz, page, num, expression);
   }
 
   /**
@@ -77,8 +93,7 @@ public abstract class DbEntity {
    * @return 没有数据返回null
    */
   public static <T extends DbEntity> List<T> findAllData(Class<T> clazz) {
-    DelegateWrapper util = DelegateWrapper.getInstance();
-    return util.findAllData(clazz);
+    return DelegateWrapper.getInstance().findAllData(clazz);
   }
 
   /**
@@ -92,33 +107,64 @@ public abstract class DbEntity {
   /**
    * 查询一组数据
    * <code>
-   * DownloadEntity.findFirst(DownloadEntity.class, "downloadUrl=?", downloadUrl);
+   * DbEntity.findFirst(DownloadEntity.class, "downloadUrl=?", downloadUrl);
    * </code>
    *
    * @return 没有数据返回null
    */
   public static <T extends DbEntity> List<T> findDatas(Class<T> clazz, String... expression) {
-    DelegateWrapper util = DelegateWrapper.getInstance();
-    return util.findData(clazz, expression);
+    return DelegateWrapper.getInstance().findData(clazz, expression);
+  }
+
+  /**
+   * 分页查询数据
+   * <code>
+   * DbEntity.findFirst(DownloadEntity.class, 0, 10, "downloadUrl=?", downloadUrl);
+   * </code>
+   *
+   * @param page 需要查询的页数，从1开始，如果page小于1 或 num 小于1，返回null
+   * @param num 每页返回的数量
+   * @return 没有数据返回null，如果页数大于总页数，返回null
+   */
+  public static <T extends DbEntity> List<T> findDatas(Class<T> clazz, int page, int num,
+      String... expression) {
+    if (page < 1 || num < 1) {
+      return null;
+    }
+    return DelegateWrapper.getInstance().findData(clazz, page, num, expression);
   }
 
   /**
    * 模糊查询一组数据
    * <code>
-   * DownloadEntity.findDatas(DownloadEntity.class, "downloadUrl like http://");
+   * DbEntity.findDataByFuzzy(DownloadEntity.class, "downloadUrl like http://");
    * </code>
    *
    * @return 没有数据返回null
    */
   public static <T extends DbEntity> List<T> findDataByFuzzy(Class<T> clazz, String conditions) {
-    DelegateWrapper util = DelegateWrapper.getInstance();
-    return util.findDataByFuzzy(clazz, conditions);
+    return DelegateWrapper.getInstance().findDataByFuzzy(clazz, conditions);
+  }
+
+  /**
+   * 模糊查询一组数据
+   * <code>
+   * DbEntity.findDataByFuzzy(DownloadEntity.class, 0, 10, "downloadUrl like http://");
+   * </code>
+   *
+   * @param page 需要查询的页数，从1开始，如果page小于1 或 num 小于1，返回null
+   * @param num 每页返回的数量
+   * @return 没有数据返回null，如果页数大于总页数，返回null
+   */
+  public static <T extends DbEntity> List<T> findDataByFuzzy(Class<T> clazz, int page, int num,
+      String conditions) {
+    return DelegateWrapper.getInstance().findDataByFuzzy(clazz, page, num, conditions);
   }
 
   /**
    * 查询一行数据
    * <code>
-   * DownloadEntity.findFirst(DownloadEntity.class, "downloadUrl=?", downloadUrl);
+   * DbEntity.findFirst(DownloadEntity.class, "downloadUrl=?", downloadUrl);
    * </code>
    *
    * @return 没有数据返回null
@@ -148,7 +194,7 @@ public abstract class DbEntity {
   /**
    * 保存多条数据，通过rowID来判断记录存在以否，如果数据库已有记录，则更新该记录；如果数据库中没有记录，则保存该记录
    */
-  public static void saveAll(List<DbEntity> entities) {
+  public static <T extends DbEntity> void saveAll(List<T> entities) {
     checkListData(entities);
     List<DbEntity> insertD = new ArrayList<>();
     List<DbEntity> updateD = new ArrayList<>();
@@ -159,9 +205,9 @@ public abstract class DbEntity {
         continue;
       }
       if (wrapper.isExist(entity.getClass(), entity.rowID)) {
-        insertD.add(entity);
-      } else {
         updateD.add(entity);
+      } else {
+        insertD.add(entity);
       }
     }
     if (!insertD.isEmpty()) {
@@ -174,7 +220,7 @@ public abstract class DbEntity {
   /**
    * 检查批量操作的列表数据，如果数据为空，抛出{@link NullPointerException}
    */
-  private static void checkListData(List<DbEntity> entities) {
+  private static <T extends DbEntity> void checkListData(List<T> entities) {
     if (entities == null || entities.isEmpty()) {
       throw new NullPointerException("列表数据为空");
     }
@@ -190,7 +236,7 @@ public abstract class DbEntity {
   /**
    * 根据条件删除数据
    * <code>
-   * DownloadEntity.deleteData(DownloadEntity.class, "downloadUrl=?", downloadUrl);
+   * DbEntity.deleteData(DownloadEntity.class, "downloadUrl=?", downloadUrl);
    * </code>
    */
   public static <T extends DbEntity> void deleteData(Class<T> clazz, String... expression) {

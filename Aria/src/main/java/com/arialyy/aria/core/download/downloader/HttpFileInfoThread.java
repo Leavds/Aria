@@ -15,6 +15,7 @@
  */
 package com.arialyy.aria.core.download.downloader;
 
+import android.net.TrafficStats;
 import android.os.Process;
 import android.text.TextUtils;
 import com.arialyy.aria.core.AriaManager;
@@ -44,6 +45,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * 下载文件信息获取
@@ -67,6 +69,7 @@ public class HttpFileInfoThread implements Runnable {
 
   @Override public void run() {
     Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+    TrafficStats.setThreadStatsTag(UUID.randomUUID().toString().hashCode());
     HttpURLConnection conn = null;
     try {
       URL url = ConnectionHelp.handleUrl(mEntity.getUrl(), mTaskDelegate);
@@ -233,6 +236,7 @@ public class HttpFileInfoThread implements Runnable {
         CompleteInfo info = new CompleteInfo(code);
         onFileInfoCallback.onComplete(mEntity.getUrl(), info);
       }
+      mEntity.update();
     }
   }
 

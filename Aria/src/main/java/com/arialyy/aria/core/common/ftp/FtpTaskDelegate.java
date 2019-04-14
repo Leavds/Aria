@@ -16,13 +16,13 @@
 package com.arialyy.aria.core.common.ftp;
 
 import com.arialyy.aria.core.FtpUrlEntity;
-import com.arialyy.aria.core.inf.ITaskDelegate;
+import com.arialyy.aria.core.inf.ITargetHeadDelegate;
 import java.net.Proxy;
 
 /**
  * fTP任务设置的信息，如：用户名、密码、端口等信息
  */
-public class FtpTaskDelegate implements ITaskDelegate {
+public class FtpTaskDelegate implements ITargetHeadDelegate {
 
   /**
    * 账号和密码

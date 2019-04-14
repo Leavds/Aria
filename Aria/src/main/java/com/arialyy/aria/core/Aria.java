@@ -49,7 +49,7 @@ import com.arialyy.aria.util.ALog;
  *    //上传
  *    Aria.upload(this)
  *        .load(filePath)     //文件路径，必填
- *        .setUploadUrl(uploadUrl)  //上传路径，必填
+ *        .setTempUrl(uploadUrl)  //上传路径，必填
  *        .setAttachment(fileKey)   //服务器读取文件的key，必填
  *        .start();
  *   </code>

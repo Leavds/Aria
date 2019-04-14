@@ -80,6 +80,7 @@ import org.xml.sax.SAXException;
   private UploadConfig mUConfig;
   private AppConfig mAConfig;
   private DGroupConfig mDGConfig;
+  private File[] files;
 
   private AriaManager(Context context) {
     APP = context.getApplicationContext();
@@ -104,11 +105,13 @@ import org.xml.sax.SAXException;
   }
 
   private void initDb(Context context) {
-    String dbBase = context.getFilesDir().getPath() + context.getPackageName() + "/databases/";
-    File db = new File(dbBase + "AriaLyyDb");
-    File dbConfig = new File(dbBase + "AriaLyyDb-journal");
+    // 这个地方错误了，获取数据库路径见：https://www.jianshu.com/p/815c9efc5449
+    String oldDbName = "AriaLyyDb";
+    String oldDbPath = context.getDatabasePath(oldDbName).getPath();
+    File db = new File(oldDbPath);
+    File dbConfig = new File(String.format("%s/%s", db.getParent(), "AriaLyyDb-journal"));
     if (db.exists()) {
-      db.renameTo(new File(dbBase + "AndroidAria.db"));
+      db.renameTo(new File(String.format("%s/%s", db.getParent(), "AndroidAria.db")));
       // 如果数据库是在/data/data/{packagename}/databases/下面，journal文件因权限问题将无法删除和重命名
       if (dbConfig.exists()) {
         dbConfig.delete();

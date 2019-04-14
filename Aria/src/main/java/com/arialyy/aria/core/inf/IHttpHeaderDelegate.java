@@ -17,8 +17,6 @@ package com.arialyy.aria.core.inf;
 
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
-import com.arialyy.aria.core.common.RequestEnum;
-import com.arialyy.aria.core.download.DownloadEntity;
 import java.net.Proxy;
 import java.util.Map;
 
@@ -26,7 +24,7 @@ import java.util.Map;
  * Created by laoyuyu on 2018/3/9.
  * HTTP Header功能接口
  */
-public interface IHttpHeaderDelegate<TARGET extends ITarget> {
+public interface IHttpHeaderDelegate<TARGET extends ITargetHandler> {
 
   /**
    * 给url请求添加Header数据

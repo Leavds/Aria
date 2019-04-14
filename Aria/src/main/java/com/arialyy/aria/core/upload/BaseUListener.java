@@ -44,5 +44,6 @@ class BaseUListener extends BaseListener<UploadEntity, UTaskWrapper, UploadTask>
     } else if (location > 0) {
       mEntity.setCurrentProgress(location);
     }
+    mEntity.update();
   }
 }

@@ -36,15 +36,20 @@ import java.util.List;
 /**
  * Created by AriaL on 2017/7/3.
  */
-public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEntity, TASK_WRAPPER extends AbsTaskWrapper>
-    implements ITarget {
+public abstract class AbsTarget<TARGET extends AbsTarget> implements ITargetHandler {
+
   protected String TAG;
-  protected ENTITY mEntity;
-  protected TASK_WRAPPER mTaskWrapper;
-  protected String mTargetName;
+  private AbsEntity mEntity;
+  private AbsTaskWrapper mTaskWrapper;
+  private String mTargetName;
 
   protected AbsTarget() {
     TAG = CommonUtil.getClassName(this);
+  }
+
+  public void setTaskWrapper(AbsTaskWrapper wrapper) {
+    mTaskWrapper = wrapper;
+    mEntity = wrapper.getEntity();
   }
 
   /**
@@ -82,10 +87,22 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
     }
   }
 
+  public AbsEntity getEntity() {
+    return mEntity;
+  }
+
+  public String getTargetName() {
+    return mTargetName;
+  }
+
+  public void setTargetName(String mTargetName) {
+    this.mTargetName = mTargetName;
+  }
+
   /**
    * 获取任务实体
    */
-  public TASK_WRAPPER getTaskWrapper() {
+  public AbsTaskWrapper getTaskWrapper() {
     return mTaskWrapper;
   }
 
@@ -103,7 +120,7 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
    *
    * @return 文件大小
    */
-  public long getSize() {
+  public long getFileSize() {
     return mEntity == null ? 0 : mEntity.getFileSize();
   }
 
@@ -112,7 +129,7 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
    *
    * @return 文件大小{@code xxx mb}
    */
-  public String getConvertSize() {
+  public String getConvertFileSize() {
     return mEntity == null ? "0b" : CommonUtil.formatFileSize(mEntity.getFileSize());
   }
 
@@ -190,9 +207,11 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
   /**
    * 保存修改
    */
-  public void save() {
+  @Override public void save() {
     if (!checkEntity()) {
       ALog.e(TAG, "保存修改失败");
+    } else {
+      ALog.i(TAG, "保存成功");
     }
   }
 
@@ -211,13 +230,33 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
   public abstract boolean taskExists();
 
   /**
+   * 设置target类型
+   *
+   * @return {@link #HTTP}、{@link #FTP}、{@link #GROUP_HTTP}、{@link #GROUP_FTP_DIR}
+   */
+  public abstract int getTargetType();
+
+  /**
+   * 添加任务
+   */
+  @Override public void add() {
+    if (checkEntity()) {
+      AriaManager.getInstance(AriaManager.APP)
+          .setCmd(CommonUtil.createNormalCmd(getTaskWrapper(), NormalCmdFactory.TASK_CREATE,
+              checkTaskType()))
+          .exe();
+    }
+  }
+
+  /**
    * 开始任务
    */
   @Override public void start() {
     if (checkEntity()) {
       AriaManager.getInstance(AriaManager.APP)
           .setCmd(
-              CommonUtil.createNormalCmd(mTaskWrapper, NormalCmdFactory.TASK_START, checkTaskType()))
+              CommonUtil.createNormalCmd(mTaskWrapper, NormalCmdFactory.TASK_START,
+                  checkTaskType()))
           .exe();
     }
   }
@@ -249,7 +288,8 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
     if (checkEntity()) {
       AriaManager.getInstance(AriaManager.APP)
           .setCmd(
-              CommonUtil.createNormalCmd(mTaskWrapper, NormalCmdFactory.TASK_START, checkTaskType()))
+              CommonUtil.createNormalCmd(mTaskWrapper, NormalCmdFactory.TASK_START,
+                  checkTaskType()))
           .exe();
     }
   }
@@ -269,7 +309,7 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
   /**
    * 任务重试
    */
-  public void reTry() {
+  @Override public void reTry() {
     if (checkEntity()) {
       List<ICmd> cmds = new ArrayList<>();
       int taskType = checkTaskType();
@@ -286,7 +326,7 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
    * @param removeFile {@code true} 不仅删除任务数据库记录，还会删除已经删除完成的文件
    * {@code false}如果任务已经完成，只删除任务数据库记录，
    */
-  public void cancel(boolean removeFile) {
+  @Override public void cancel(boolean removeFile) {
     if (checkEntity()) {
       CancelCmd cancelCmd =
           (CancelCmd) CommonUtil.createNormalCmd(mTaskWrapper, NormalCmdFactory.TASK_CANCEL,
@@ -299,7 +339,7 @@ public abstract class AbsTarget<TARGET extends AbsTarget, ENTITY extends AbsEnti
   /**
    * 重新下载
    */
-  public void reStart() {
+  @Override public void reStart() {
     if (checkEntity()) {
       cancel();
       start();

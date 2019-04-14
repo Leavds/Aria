@@ -17,67 +17,49 @@ package com.arialyy.aria.core.download;
 
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
-import com.arialyy.aria.core.common.RequestEnum;
 import com.arialyy.aria.core.common.http.HttpHeaderDelegate;
 import com.arialyy.aria.core.common.http.PostDelegate;
 import com.arialyy.aria.core.inf.IHttpHeaderDelegate;
 import com.arialyy.aria.core.manager.TaskWrapperManager;
-import com.arialyy.aria.orm.DbEntity;
+import com.arialyy.aria.exception.ParamException;
 import com.arialyy.aria.util.ALog;
-import com.arialyy.aria.util.CommonUtil;
-import java.io.File;
 import java.net.Proxy;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by AriaL on 2017/6/29.
  * 下载任务组
  */
-public class DownloadGroupTarget extends BaseGroupTarget<DownloadGroupTarget> implements
+public class DownloadGroupTarget extends AbsDGTarget<DownloadGroupTarget> implements
     IHttpHeaderDelegate<DownloadGroupTarget> {
-  private HttpHeaderDelegate<DownloadGroupTarget> mDelegate;
-  /**
-   * 子任务下载地址，
-   */
-  private List<String> mUrls = new ArrayList<>();
+  private HttpHeaderDelegate<DownloadGroupTarget> mHeaderDelegate;
+  private HttpGroupDelegate mGroupDelegate;
 
-  /**
-   * 子任务文件名
-   */
-  private List<String> mSubNameTemp = new ArrayList<>();
-
-  public DownloadGroupTarget(DownloadGroupEntity groupEntity, String targetName) {
-    this.mTargetName = targetName;
+  DownloadGroupTarget(DownloadGroupEntity groupEntity, String targetName) {
+    setTargetName(targetName);
     if (groupEntity.getUrls() != null && !groupEntity.getUrls().isEmpty()) {
-      this.mUrls.addAll(groupEntity.getUrls());
+      init(groupEntity.getUrls());
+    } else {
+      throw new ParamException("组合任务只任务下载地址为空");
     }
-    init();
   }
 
   DownloadGroupTarget(List<String> urls, String targetName) {
-    this.mTargetName = targetName;
-    this.mUrls = urls;
-    init();
+    setTargetName(targetName);
+    init(urls);
   }
 
-  private void init() {
-    mGroupHash = CommonUtil.getMd5Code(mUrls);
-    mTaskWrapper = TaskWrapperManager.getInstance().getDGTaskWrapper(DGTaskWrapper.class, mUrls);
-    mEntity = mTaskWrapper.getEntity();
-    if (mEntity != null) {
-      mDirPathTemp = mEntity.getDirPath();
-    }
-    mDelegate = new HttpHeaderDelegate<>(this);
+  private void init(List<String> urls) {
+    mGroupDelegate = new HttpGroupDelegate(this,
+        TaskWrapperManager.getInstance().getDGTaskWrapper(DGTaskWrapper.class, urls));
+    mHeaderDelegate = new HttpHeaderDelegate<>(this);
   }
 
   /**
    * Post处理
    */
+  @CheckResult
   public PostDelegate asPost() {
     return new PostDelegate<>(this);
   }
@@ -89,24 +71,7 @@ public class DownloadGroupTarget extends BaseGroupTarget<DownloadGroupTarget> im
    */
   @CheckResult
   public DownloadGroupTarget updateUrls(List<String> urls) {
-    if (urls == null || urls.isEmpty()) {
-      throw new NullPointerException("下载地址列表为空");
-    }
-    if (urls.size() != mUrls.size()) {
-      throw new IllegalArgumentException("新下载地址数量和旧下载地址数量不一致");
-    }
-    mUrls.clear();
-    mUrls.addAll(urls);
-    mGroupHash = CommonUtil.getMd5Code(urls);
-    mEntity.setGroupHash(mGroupHash);
-    mEntity.update();
-    if (mEntity.getSubEntities() != null && !mEntity.getSubEntities().isEmpty()) {
-      for (DownloadEntity de : mEntity.getSubEntities()) {
-        de.setGroupHash(mGroupHash);
-        de.update();
-      }
-    }
-    return this;
+    return mGroupDelegate.updateUrls(urls);
   }
 
   /**
@@ -123,8 +88,8 @@ public class DownloadGroupTarget extends BaseGroupTarget<DownloadGroupTarget> im
       ALog.e(TAG, "文件大小不能小于 0");
       return this;
     }
-    if (mEntity.getFileSize() <= 1 || mEntity.getFileSize() != fileSize) {
-      mEntity.setFileSize(fileSize);
+    if (getEntity().getFileSize() <= 1 || getEntity().getFileSize() != fileSize) {
+      getEntity().setFileSize(fileSize);
     }
     return this;
   }
@@ -134,9 +99,7 @@ public class DownloadGroupTarget extends BaseGroupTarget<DownloadGroupTarget> im
    */
   @CheckResult
   public DownloadGroupTarget setGroupUrl(List<String> urls) {
-    mUrls.clear();
-    mUrls.addAll(urls);
-    return this;
+    return mGroupDelegate.setGroupUrl(urls);
   }
 
   /**
@@ -150,188 +113,71 @@ public class DownloadGroupTarget extends BaseGroupTarget<DownloadGroupTarget> im
   }
 
   /**
+   * 设置任务组的文件夹路径，在Aria中，任务组的所有子任务都会下载到以任务组组名的文件夹中。
+   * 如：groupDirPath = "/mnt/sdcard/download/group_test"
+   * <pre>
+   *   {@code
+   *      + mnt
+   *        + sdcard
+   *          + download
+   *            + group_test
+   *              - task1.apk
+   *              - task2.apk
+   *              - task3.apk
+   *              ....
+   *
+   *   }
+   * </pre>
+   *
+   * @param dirPath 任务组保存文件夹路径
+   */
+  @CheckResult
+  public DownloadGroupTarget setDirPath(String dirPath) {
+    return mGroupDelegate.setDirPath(dirPath);
+  }
+
+  /**
    * 设置子任务文件名，该方法必须在{@link #setDirPath(String)}之后调用，否则不生效
    */
   @CheckResult
   public DownloadGroupTarget setSubFileName(List<String> subTaskFileName) {
-    if (subTaskFileName == null || subTaskFileName.isEmpty()) {
-      ALog.e(TAG, "修改子任务的文件名失败：列表为null");
-      return this;
-    }
-    if (subTaskFileName.size() != mTaskWrapper.getSubTaskWrapper().size()) {
-      ALog.e(TAG, "修改子任务的文件名失败：子任务文件名列表数量和子任务的数量不匹配");
-      return this;
-    }
-    mSubNameTemp.clear();
-    mSubNameTemp.addAll(subTaskFileName);
-    return this;
+    return mGroupDelegate.setSubFileName(subTaskFileName);
   }
 
-  @Override protected int getTargetType() {
+  @Override public int getTargetType() {
     return GROUP_HTTP;
   }
 
   @Override protected boolean checkEntity() {
-    if (getTargetType() == GROUP_HTTP) {
-      if (!checkDirPath()) {
-        return false;
-      }
-
-      if (!checkSubName()) {
-        return false;
-      }
-
-      if (!checkUrls()) {
-        return false;
-      }
-
-      if (mTaskWrapper.getEntity().getFileSize() == 0) {
-        ALog.e(TAG, "组合任务必须设置文件文件大小");
-        return false;
-      }
-
-      if (mTaskWrapper.asHttp().getRequestEnum() == RequestEnum.POST) {
-        for (DTaskWrapper subTask : mTaskWrapper.getSubTaskWrapper()) {
-          subTask.asHttp().setRequestEnum(RequestEnum.POST);
-        }
-      }
-
-      mEntity.save();
-
-      if (needModifyPath) {
-        reChangeDirPath(mDirPathTemp);
-      }
-
-      if (!mSubNameTemp.isEmpty()) {
-        updateSingleSubFileName();
-      }
-      return true;
-    }
-    return false;
+    return mGroupDelegate.checkEntity();
   }
 
-  /**
-   * 更新所有改动的子任务文件名
-   */
-  private void updateSingleSubFileName() {
-    List<DTaskWrapper> entities = mTaskWrapper.getSubTaskWrapper();
-    int i = 0;
-    for (DTaskWrapper entity : entities) {
-      if (i < mSubNameTemp.size()) {
-        String newName = mSubNameTemp.get(i);
-        updateSingleSubFileName(entity, newName);
-      }
-      i++;
-    }
+  @Override public boolean isRunning() {
+    return mGroupDelegate.isRunning();
   }
 
-  /**
-   * 检查urls是否合法，并删除不合法的子任务
-   *
-   * @return {@code true} 合法
-   */
-  private boolean checkUrls() {
-    if (mUrls.isEmpty()) {
-      ALog.e(TAG, "下载失败，子任务下载列表为null");
-      return false;
-    }
-    Set<Integer> delItem = new HashSet<>();
-
-    int i = 0;
-    for (String url : mUrls) {
-      if (TextUtils.isEmpty(url)) {
-        ALog.e(TAG, "子任务url为null，即将删除该子任务。");
-        delItem.add(i);
-        continue;
-      } else if (!url.startsWith("http")) {
-        //} else if (!url.startsWith("http") && !url.startsWith("ftp")) {
-        ALog.e(TAG, "子任务url【" + url + "】错误，即将删除该子任务。");
-        delItem.add(i);
-        continue;
-      }
-      int index = url.indexOf("://");
-      if (index == -1) {
-        ALog.e(TAG, "子任务url【" + url + "】不合法，即将删除该子任务。");
-        delItem.add(i);
-        continue;
-      }
-
-      i++;
-    }
-
-    for (int index : delItem) {
-      mUrls.remove(index);
-      if (mSubNameTemp != null && !mSubNameTemp.isEmpty()) {
-        mSubNameTemp.remove(index);
-      }
-    }
-
-    mEntity.setGroupHash(CommonUtil.getMd5Code(mUrls));
-
-    return true;
-  }
-
-  /**
-   * 更新单个子任务文件名
-   */
-  private void updateSingleSubFileName(DTaskWrapper taskEntity, String newName) {
-    DownloadEntity entity = taskEntity.getEntity();
-    if (!newName.equals(entity.getFileName())) {
-      String oldPath = mEntity.getDirPath() + "/" + entity.getFileName();
-      String newPath = mEntity.getDirPath() + "/" + newName;
-      if (DbEntity.checkDataExist(DownloadEntity.class, "downloadPath=? or isComplete='true'",
-          newPath)) {
-        ALog.w(TAG, String.format("更新文件名失败，路径【%s】已存在或文件已下载", newPath));
-        return;
-      }
-
-      File oldFile = new File(oldPath);
-      if (oldFile.exists()) {
-        oldFile.renameTo(new File(newPath));
-      }
-
-      CommonUtil.modifyTaskRecord(oldFile.getPath(), newPath);
-      entity.setDownloadPath(newPath);
-      entity.setFileName(newName);
-      entity.update();
-    }
-  }
-
-  /**
-   * 如果用户设置了子任务文件名，检查子任务文件名
-   *
-   * @return {@code true} 合法
-   */
-  private boolean checkSubName() {
-    if (mSubNameTemp == null || mSubNameTemp.isEmpty()) {
-      return true;
-    }
-    if (mUrls.size() != mSubNameTemp.size()) {
-      ALog.e(TAG, "子任务文件名必须和子任务数量一致");
-      return false;
-    }
-
-    return true;
+  @Override public boolean taskExists() {
+    return mGroupDelegate.taskExists();
   }
 
   @CheckResult
   @Override public DownloadGroupTarget addHeader(@NonNull String key, @NonNull String value) {
-    for (DTaskWrapper subTask : mTaskWrapper.getSubTaskWrapper()) {
-      mDelegate.addHeader(subTask, key, value);
+    for (DTaskWrapper subTask : getTaskWrapper().getSubTaskWrapper()) {
+      mHeaderDelegate.addHeader(subTask, key, value);
     }
-    return mDelegate.addHeader(key, value);
+    return mHeaderDelegate.addHeader(key, value);
   }
 
   @CheckResult
   @Override public DownloadGroupTarget addHeaders(Map<String, String> headers) {
-    for (DTaskWrapper subTask : mTaskWrapper.getSubTaskWrapper()) {
-      mDelegate.addHeaders(subTask, headers);
+    for (DTaskWrapper subTask : getTaskWrapper().getSubTaskWrapper()) {
+      mHeaderDelegate.addHeaders(subTask, headers);
     }
-    return mDelegate.addHeaders(headers);
+    return mHeaderDelegate.addHeaders(headers);
   }
 
   @CheckResult
   @Override public DownloadGroupTarget setUrlProxy(Proxy proxy) {
-    return mDelegate.setUrlProxy(proxy);
+    return mHeaderDelegate.setUrlProxy(proxy);
   }
 }

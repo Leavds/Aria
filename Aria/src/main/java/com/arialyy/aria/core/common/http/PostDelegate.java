@@ -21,7 +21,7 @@ import com.arialyy.aria.core.inf.AbsTarget;
 /**
  * post处理委托类
  */
-public class PostDelegate<TARGET extends AbsTarget> extends BaseTarget<TARGET> {
+public class PostDelegate<TARGET extends AbsTarget> extends HttpDelegate<TARGET> {
 
   public PostDelegate(TARGET target) {
     super(target);

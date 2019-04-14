@@ -15,9 +15,11 @@
  */
 package com.arialyy.aria.core.upload;
 
+import android.content.Context;
 import android.support.annotation.CheckResult;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import com.arialyy.aria.core.Aria;
 import com.arialyy.aria.core.AriaManager;
 import com.arialyy.aria.core.command.ICmd;
 import com.arialyy.aria.core.command.normal.CancelAllCmd;
@@ -44,7 +46,9 @@ public class UploadReceiver extends AbsReceiver {
    * 设置最大上传速度，单位：kb
    *
    * @param maxSpeed 为0表示不限速
+   * @deprecated 请使用 {@code Aria.get(Context).getUploadConfig().setMaxSpeed(int)}
    */
+  @Deprecated
   public UploadReceiver setMaxSpeed(int maxSpeed) {
     AriaManager.getInstance(AriaManager.APP).getUploadConfig().setMaxSpeed(maxSpeed);
     return this;
@@ -94,7 +98,7 @@ public class UploadReceiver extends AbsReceiver {
 
   /**
    * 获取所有普通上传任务
-   * 获取未完成的普通任务列表{@link #getAllNotCompletTask()}
+   * 获取未完成的普通任务列表{@link #getAllNotCompleteTask()}
    * 获取已经完成的普通任务列表{@link #getAllCompleteTask()}
    */
   public List<UploadEntity> getTaskList() {
@@ -102,19 +106,60 @@ public class UploadReceiver extends AbsReceiver {
   }
 
   /**
+   * 分页获取所有普通上传任务
+   * 获取未完成的普通任务列表{@link #getAllNotCompleteTask()}
+   * 获取已经完成的普通任务列表{@link #getAllCompleteTask()}
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果页数大于总页数，返回null
+   */
+  public List<UploadEntity> getTaskList(int page, int num) {
+    CheckUtil.checkPageParams(page, num);
+    return DbEntity.findDatas(UploadEntity.class, page, num,
+        "isGroupChild=? and downloadPath!=''", "false");
+  }
+
+  /**
    * 获取所有未完成的普通上传任务
    */
-  public List<UploadEntity> getAllNotCompletTask() {
-    return UploadEntity.findDatas(UploadEntity.class,
+  public List<UploadEntity> getAllNotCompleteTask() {
+    return DbEntity.findDatas(UploadEntity.class,
         "isGroupChild=? and isComplete=?", "false", "false");
+  }
+
+  /**
+   * 分页获取所有未完成的普通上传任务
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果页数大于总页数，返回null
+   */
+  public List<UploadEntity> getAllNotCompleteTask(int page, int num) {
+    CheckUtil.checkPageParams(page, num);
+    return DbEntity.findDatas(UploadEntity.class, page, num,
+        "isGroupChild=? and downloadPath!='' and isComplete=?", "false", "false");
   }
 
   /**
    * 获取所有已经完成的普通任务
    */
   public List<UploadEntity> getAllCompleteTask() {
-    return UploadEntity.findDatas(UploadEntity.class,
-        "isGroupChild=? and isComplete=?", "false", "true");
+    return DbEntity.findDatas(UploadEntity.class, "isGroupChild=? and isComplete=?", "false",
+        "true");
+  }
+
+  /**
+   * 分页获取所有已经完成的普通任务
+   *
+   * @param page 当前页，不能小于1
+   * @param num 每页数量，不能小于1
+   * @return 如果页数大于总页数，返回null
+   */
+  public List<UploadEntity> getAllCompleteTask(int page, int num) {
+    CheckUtil.checkPageParams(page, num);
+    return DbEntity.findDatas(UploadEntity.class,
+        "isGroupChild=? and downloadPath!='' and isComplete=?", "false", "true");
   }
 
   /**
